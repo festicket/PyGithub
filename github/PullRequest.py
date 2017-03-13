@@ -34,6 +34,7 @@ import github.PullRequestMergeStatus
 import github.NamedUser
 import github.PullRequestPart
 import github.PullRequestComment
+import github.PullRequestReview
 import github.File
 import github.IssueComment
 import github.Commit
@@ -457,6 +458,46 @@ class PullRequest(github.GithubObject.CompletableGithubObject):
             self.url + "/commits",
             None
         )
+
+    def get_reviews(self):
+        """
+        :calls: `GET /repos/:owner/:repo/pulls/:number/reviews <http://developer.github.com/v3/pulls>`_
+        :rtype: :class:`github.PaginatedList.PaginatedList` of :class:`github.PullRequestReview.PullRequestReview`
+        """
+        return github.PaginatedList.PaginatedList(
+            github.PullRequestReview.PullRequestReview,
+            self._requester,
+            self.url + "/reviews",
+            None,
+            headers={'Accept': 'application/vnd.github.black-cat-preview+json'}
+        )
+
+    def get_requested_reviewers(self):
+        """
+        :calls: `GET /repos/:owner/:repo/pulls/:number/reviews <http://developer.github.com/v3/pulls>`_
+        :rtype: :class:`github.PaginatedList.PaginatedList` of :class:`github.NamedUser.NamedUser`
+        """
+        return github.PaginatedList.PaginatedList(
+            github.NamedUser.NamedUser,
+            self._requester,
+            self.url + "/requested_reviewers",
+            None,
+            headers={'Accept': 'application/vnd.github.black-cat-preview+json'}
+        )
+
+    def get_review(self, id):
+        """
+        :calls: `GET /repos/:owner/:repo/pulls/:number/reviews/:id <http://developer.github.com/v3/pulls>`_
+        :param id: integer
+        :rtype: :class:`github.PullRequestReview.PullRequestReview`
+        """
+        assert isinstance(id, (int, long)), id
+        headers, data = self._requester.requestJsonAndCheck(
+            "GET",
+            self.url + "/reviews/" + str(id),
+            headers={'Accept': 'application/vnd.github.black-cat-preview+json'}
+        )
+        return github.PullRequestReview.PullRequestReview(self._requester, headers, data, completed=True)
 
     def get_files(self):
         """
